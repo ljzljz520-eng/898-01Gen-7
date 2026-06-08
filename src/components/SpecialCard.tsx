@@ -11,7 +11,7 @@ interface SpecialCardProps {
 export default function SpecialCard({ special, className }: SpecialCardProps) {
   return (
     <Link
-      to={`/specials/${special.id}`}
+      to={`/special/${special.id}`}
       className={cn(
         'group relative block rounded-3xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-2',
         className

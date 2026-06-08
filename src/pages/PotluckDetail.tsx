@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Tag } from '@/components/ui/Tag'
 import { Input } from '@/components/ui/Input'
 import RecipeCard from '@/components/RecipeCard'
+import { useStore } from '@/store/useStore'
 import type { PotluckEvent } from '../../shared/types'
 
 const statusConfig = {
@@ -18,10 +19,10 @@ const statusConfig = {
 
 export default function PotluckDetail() {
   const { id } = useParams<{ id: string }>()
+  const { currentUser } = useStore()
   const [potluck, setPotluck] = useState<PotluckEvent | null>(null)
   const [loading, setLoading] = useState(true)
   const [contribution, setContribution] = useState('')
-  const currentUserId = 'u1'
 
   const fetchPotluckDetail = useCallback(async () => {
     if (!id) return
@@ -41,9 +42,12 @@ export default function PotluckDetail() {
   }, [id, fetchPotluckDetail])
 
   const handleJoin = async () => {
-    if (!id) return
+    if (!id || !currentUser) {
+      alert('请先登录后再报名')
+      return
+    }
     try {
-      await api.potlucks.join(id, currentUserId, contribution)
+      await api.potlucks.join(id, currentUser.id, contribution)
       setContribution('')
       fetchPotluckDetail()
     } catch (error) {
@@ -75,9 +79,9 @@ export default function PotluckDetail() {
   const status = statusConfig[potluck.status]
   const participantCount = potluck.participants.length
   const progress = (participantCount / potluck.maxParticipants) * 100
-  const hasJoined = potluck.participants.some((p) => p.userId === currentUserId)
+  const hasJoined = currentUser && potluck.participants.some((p) => p.userId === currentUser.id)
   const isFull = potluck.status === 'full' || participantCount >= potluck.maxParticipants
-  const canJoin = potluck.status === 'recruiting' && !hasJoined && !isFull
+  const canJoin = potluck.status === 'recruiting' && !hasJoined && !isFull && !!currentUser
 
   return (
     <div className="min-h-screen bg-gradient-warm pb-24">

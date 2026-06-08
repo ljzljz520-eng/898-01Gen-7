@@ -4,13 +4,31 @@ import type { User, Recipe, ApiResponse } from '../../shared/types';
 
 const router = Router();
 
+let currentUserId = 'u1';
+
 router.get('/current', (req: Request, res: Response<ApiResponse<User>>) => {
-  const user = store.getUserById('u1');
+  const user = store.getUserById(currentUserId);
   if (!user) {
     res.status(404).json({ success: false, error: '用户不存在' });
     return;
   }
   res.json({ success: true, data: user });
+});
+
+router.post('/switch/:id', (req: Request, res: Response<ApiResponse<User>>) => {
+  const { id } = req.params;
+  const user = store.getUserById(id);
+  if (!user) {
+    res.status(404).json({ success: false, error: '用户不存在' });
+    return;
+  }
+  currentUserId = id;
+  res.json({ success: true, data: user });
+});
+
+router.get('/list', (req: Request, res: Response<ApiResponse<User[]>>) => {
+  const users = store.getUsers();
+  res.json({ success: true, data: users });
 });
 
 router.get('/:id', (req: Request, res: Response<ApiResponse<User>>) => {

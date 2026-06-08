@@ -22,7 +22,7 @@ export default function KitchenCard({ kitchen, className }: KitchenCardProps) {
 
   return (
     <Link
-      to={`/kitchens/${kitchen.id}`}
+      to={`/kitchen/${kitchen.id}`}
       className={cn(
         'group relative block bg-white rounded-3xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1',
         className

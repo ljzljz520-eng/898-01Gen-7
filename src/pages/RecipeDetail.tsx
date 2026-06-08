@@ -9,11 +9,13 @@ import { Textarea } from '@/components/ui/Textarea';
 import PotluckCard from '@/components/PotluckCard';
 import KitchenCard from '@/components/KitchenCard';
 import Loading from '@/components/Loading';
+import { useStore } from '@/store/useStore';
 import type { Recipe, Comment, PotluckEvent, KitchenEvent } from '../../shared/types';
 
 export default function RecipeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { currentUser, toggleFavorite: storeToggleFavorite } = useStore();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [relatedPotlucks, setRelatedPotlucks] = useState<PotluckEvent[]>([]);
@@ -29,13 +31,18 @@ export default function RecipeDetail() {
     if (!id) return;
     setLoading(true);
     try {
-      const [recipeData, commentsData, potlucksData, kitchensData, favorited] = await Promise.all([
+      const promises: Promise<any>[] = [
         api.recipes.getById(id),
         api.recipes.getComments(id),
         api.potlucks.getList(),
         api.kitchens.getList(),
-        api.recipes.checkFavorite(id),
-      ]);
+      ];
+      if (currentUser) {
+        promises.push(api.recipes.checkFavorite(id, currentUser.id));
+      } else {
+        promises.push(Promise.resolve(false));
+      }
+      const [recipeData, commentsData, potlucksData, kitchensData, favorited] = await Promise.all(promises);
       setRecipe(recipeData);
       setComments(commentsData);
       setFavoriteCount(recipeData.favoriteCount);
@@ -56,11 +63,17 @@ export default function RecipeDetail() {
 
   const handleToggleFavorite = async () => {
     if (!id) return;
+    if (!currentUser) {
+      alert('请先登录后再收藏');
+      return;
+    }
     setIsAnimating(true);
     try {
-      const result = await api.recipes.toggleFavorite(id);
-      setIsFavorited(result.isFavorited);
-      setFavoriteCount(result.favoriteCount);
+      await storeToggleFavorite(id);
+      const result = await api.recipes.checkFavorite(id, currentUser.id);
+      setIsFavorited(result);
+      const updated = await api.recipes.getById(id);
+      setFavoriteCount(updated.favoriteCount);
     } catch (err) {
       console.error('收藏失败', err);
     } finally {
@@ -70,8 +83,12 @@ export default function RecipeDetail() {
 
   const handleAddComment = async () => {
     if (!id || !commentText.trim()) return;
+    if (!currentUser) {
+      alert('请先登录后再评论');
+      return;
+    }
     try {
-      const newComment = await api.recipes.addComment(id, commentText.trim());
+      const newComment = await api.recipes.addComment(id, commentText.trim(), currentUser.id);
       setComments(prev => [...prev, newComment]);
       setCommentText('');
     } catch (err) {

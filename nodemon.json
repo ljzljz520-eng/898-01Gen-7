@@ -2,7 +2,7 @@
   "watch": ["api"],
   "ext": "ts,mts,js,json",
   "ignore": ["api/dist/*"],
-  "exec": "PORT=3001 tsx api/server.ts",
+  "exec": "PORT=3002 tsx api/server.ts",
   "env": {
     "NODE_ENV": "development"
   },

@@ -19,7 +19,7 @@ export default function RecipeCard({ recipe, className, onFavorite }: RecipeCard
 
   return (
     <Link
-      to={`/recipes/${recipe.id}`}
+      to={`/recipe/${recipe.id}`}
       className={cn(
         'group relative bg-white rounded-3xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1',
         className

@@ -4,6 +4,7 @@ import { api } from '../utils/api';
 
 interface AppState {
   currentUser: User | null;
+  allUsers: User[];
   recipes: Recipe[];
   potluckEvents: PotluckEvent[];
   kitchenEvents: KitchenEvent[];
@@ -14,6 +15,8 @@ interface AppState {
   // Actions
   setCurrentUser: (user: User | null) => void;
   fetchCurrentUser: () => Promise<void>;
+  fetchAllUsers: () => Promise<void>;
+  switchUser: (userId: string) => Promise<void>;
   fetchRecipes: (params?: { page?: number; pageSize?: number; cuisine?: string; taste?: string }) => Promise<void>;
   fetchPotlucks: (status?: string) => Promise<void>;
   fetchKitchens: (date?: string) => Promise<void>;
@@ -25,6 +28,7 @@ interface AppState {
 
 export const useStore = create<AppState>((set, get) => ({
   currentUser: null,
+  allUsers: [],
   recipes: [],
   potluckEvents: [],
   kitchenEvents: [],
@@ -40,6 +44,24 @@ export const useStore = create<AppState>((set, get) => ({
       set({ currentUser: user });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : '获取用户信息失败' });
+    }
+  },
+
+  fetchAllUsers: async () => {
+    try {
+      const users = await api.users.getList();
+      set({ allUsers: users });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : '获取用户列表失败' });
+    }
+  },
+
+  switchUser: async (userId: string) => {
+    try {
+      const user = await api.users.switchUser(userId);
+      set({ currentUser: user });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : '切换用户失败' });
     }
   },
 
@@ -93,7 +115,10 @@ export const useStore = create<AppState>((set, get) => ({
 
   toggleFavorite: async (recipeId) => {
     const { currentUser } = get();
-    if (!currentUser) return;
+    if (!currentUser) {
+      set({ error: '请先登录后再操作' });
+      return;
+    }
 
     try {
       const result = await api.recipes.toggleFavorite(recipeId, currentUser.id);

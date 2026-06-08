@@ -9,7 +9,7 @@ import type {
   PaginatedResponse,
 } from '../../shared/types';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001/api';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3002/api';
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -66,19 +66,19 @@ export const api = {
 
     getComments: (id: string) => request<Comment[]>(`/recipes/${id}/comments`),
 
-    addComment: (id: string, content: string, userId: string = 'u1') =>
+    addComment: (id: string, content: string, userId: string) =>
       request<Comment>(`/recipes/${id}/comments`, {
         method: 'POST',
         body: JSON.stringify({ userId, content }),
       }),
 
-    toggleFavorite: (id: string, userId: string = 'u1') =>
+    toggleFavorite: (id: string, userId: string) =>
       request<{ favoriteCount: number; isFavorited: boolean }>(`/recipes/${id}/favorite`, {
         method: 'POST',
         body: JSON.stringify({ userId }),
       }),
 
-    checkFavorite: (id: string, userId: string = 'u1') =>
+    checkFavorite: (id: string, userId: string) =>
       request<boolean>(`/recipes/${id}/favorite?userId=${userId}`),
   },
 
@@ -96,7 +96,7 @@ export const api = {
         body: JSON.stringify(data),
       }),
 
-    join: (id: string, userId: string = 'u1', contribution?: string) =>
+    join: (id: string, userId: string, contribution?: string) =>
       request<PotluckEvent>(`/potlucks/${id}/join`, {
         method: 'POST',
         body: JSON.stringify({ userId, contribution }),
@@ -117,7 +117,7 @@ export const api = {
         body: JSON.stringify(data),
       }),
 
-    register: (id: string, userId: string = 'u1') =>
+    register: (id: string, userId: string) =>
       request<KitchenEvent>(`/kitchens/${id}/register`, {
         method: 'POST',
         body: JSON.stringify({ userId }),
@@ -147,6 +147,12 @@ export const api = {
 
   users: {
     getCurrent: () => request<User>('/users/current'),
+
+    getList: () => request<User[]>('/users/list'),
+
+    switchUser: (id: string) => request<User>(`/users/switch/${id}`, {
+      method: 'POST',
+    }),
 
     getById: (id: string) => request<User>(`/users/${id}`),
 

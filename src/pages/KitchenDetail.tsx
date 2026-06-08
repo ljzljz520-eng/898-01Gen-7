@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Calendar, Clock, MapPin, Users, ChefHat, UtensilsCrossed, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -6,6 +6,7 @@ import { Tag } from '@/components/ui/Tag'
 import RecipeCard from '@/components/RecipeCard'
 import Loading from '@/components/Loading'
 import { api } from '@/utils/api'
+import { useStore } from '@/store/useStore'
 import type { KitchenEvent } from '../../shared/types'
 
 const statusConfig = {
@@ -17,35 +18,39 @@ const statusConfig = {
 
 export default function KitchenDetail() {
   const { id } = useParams<{ id: string }>()
+  const { currentUser } = useStore()
   const [kitchen, setKitchen] = useState<KitchenEvent | null>(null)
   const [loading, setLoading] = useState(true)
   const [isRegistered, setIsRegistered] = useState(false)
   const [registerLoading, setRegisterLoading] = useState(false)
 
-  const loadKitchen = async () => {
+  const loadKitchen = useCallback(async () => {
     if (!id) return
     try {
       setLoading(true)
       const data = await api.kitchens.getById(id)
       setKitchen(data)
-      setIsRegistered(data.participants.some(p => p.userId === 'u1'))
+      setIsRegistered(currentUser ? data.participants.some(p => p.userId === currentUser.id) : false)
     } catch (e) {
       console.error('Failed to fetch kitchen:', e)
     } finally {
       setLoading(false)
     }
-  }
+  }, [id, currentUser])
 
   useEffect(() => {
     loadKitchen()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [loadKitchen, currentUser])
 
   const handleRegister = async () => {
     if (!id || !kitchen || isRegistered || registerLoading) return
+    if (!currentUser) {
+      alert('请先登录后再报名')
+      return
+    }
     try {
       setRegisterLoading(true)
-      await api.kitchens.register(id, 'u1')
+      await api.kitchens.register(id, currentUser.id)
       await loadKitchen()
     } catch (e) {
       console.error('Failed to register:', e)
@@ -82,7 +87,7 @@ export default function KitchenDetail() {
   const participantCount = kitchen.participants.length
   const isFull = participantCount >= kitchen.maxParticipants
   const status = statusConfig[kitchen.status]
-  const canRegister = kitchen.status === 'upcoming' && !isFull && !isRegistered
+  const canRegister = kitchen.status === 'upcoming' && !isFull && !isRegistered && !!currentUser
 
   return (
     <div className="min-h-screen bg-gradient-warm pb-32">

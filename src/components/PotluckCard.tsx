@@ -23,7 +23,7 @@ export default function PotluckCard({ potluck, className }: PotluckCardProps) {
 
   return (
     <Link
-      to={`/potlucks/${potluck.id}`}
+      to={`/potluck/${potluck.id}`}
       className={cn(
         'group relative block bg-white rounded-3xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1',
         className

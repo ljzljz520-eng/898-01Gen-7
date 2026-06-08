@@ -10,6 +10,8 @@ import KitchenList from "@/pages/KitchenList";
 import KitchenDetail from "@/pages/KitchenDetail";
 import Admin from "@/pages/Admin";
 import SpecialEditor from "@/pages/SpecialEditor";
+import SpecialList from "@/pages/SpecialList";
+import SpecialDetail from "@/pages/SpecialDetail";
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
               <Route path="/potluck/:id" element={<PotluckDetail />} />
               <Route path="/kitchens" element={<KitchenList />} />
               <Route path="/kitchen/:id" element={<KitchenDetail />} />
+              <Route path="/specials" element={<SpecialList />} />
+              <Route path="/special/:id" element={<SpecialDetail />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/special/:id" element={<SpecialEditor />} />
